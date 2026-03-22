@@ -90,7 +90,7 @@ class GatewaySettings(
                         ?: NotificationChannel.AUTO
                     val changed = notificationChannel != newValue
 
-                    storage.set(it.key, newValue.name)
+                    storage.set(it.key, newValue)
 
                     changed
                 }
