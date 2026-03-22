@@ -5,7 +5,6 @@ import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
-import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -29,11 +28,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import me.capcom.smsgateway.BuildConfig
-import me.capcom.smsgateway.R
 import me.capcom.smsgateway.extensions.configure
 import me.capcom.smsgateway.modules.logs.LogsService
 import me.capcom.smsgateway.modules.logs.db.LogEntry
-import me.capcom.smsgateway.modules.notifications.NotificationsService
 import me.capcom.smsgateway.modules.webhooks.NAME
 import me.capcom.smsgateway.modules.webhooks.WebhooksSettings
 import me.capcom.smsgateway.modules.webhooks.db.WebhookQueueEntity
@@ -54,7 +51,6 @@ class WebhookQueueProcessorWorker(
     params: WorkerParameters
 ) : CoroutineWorker(appContext, params), KoinComponent {
 
-    private val notificationsSvc: NotificationsService by inject()
     private val logsSvc: LogsService by inject()
     private val webhookRepository: WebhookQueueRepository by inject()
     private val settings: WebhooksSettings by inject()
@@ -117,18 +113,6 @@ class WebhookQueueProcessorWorker(
                     "attempt" to runAttemptCount,
                 )
             )
-
-            // Get foreground info early to ensure proper service startup
-            try {
-                setForeground(getForegroundInfo())
-            } catch (e: Throwable) {
-                logsSvc.insert(
-                    priority = LogEntry.Priority.WARN,
-                    module = NAME,
-                    message = "Failed to set foreground: ${e.message}",
-                    context = mapOf("error" to e.toString())
-                )
-            }
 
             do {
                 // Process the queue with priority handling
@@ -395,17 +379,6 @@ class WebhookQueueProcessorWorker(
             // If retry scheduling fails, mark as permanently failed
             webhookRepository.permanentlyFailWebhook(webhookId, error ?: "Unknown error")
         }
-    }
-
-    override suspend fun getForegroundInfo(): ForegroundInfo {
-        val notificationId = NotificationsService.NOTIFICATION_ID_WEBHOOK_WORKER
-        val notification = notificationsSvc.makeNotification(
-            applicationContext,
-            notificationId,
-            applicationContext.getString(R.string.processing_webhook_queue)
-        )
-
-        return ForegroundInfo(notificationId, notification)
     }
 
     /**
