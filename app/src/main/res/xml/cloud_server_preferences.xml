@@ -10,7 +10,6 @@
         <EditTextPreference
             app:icon="@drawable/ic_token"
             app:key="gateway.private_token"
-            app:summary="@string/ignored_for_public_server"
             app:title="@string/private_token" />
         <ListPreference
             app:icon="@drawable/ic_notifications"

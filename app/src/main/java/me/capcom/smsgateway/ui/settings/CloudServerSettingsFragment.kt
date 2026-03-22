@@ -57,6 +57,23 @@ class CloudServerSettingsFragment : BasePreferenceFragment() {
             true
         }
 
+        findPreference<EditTextPreference>("gateway.private_token")?.apply {
+            // Pre-populate with the current effective token if nothing is stored yet
+            val stored = preferenceManager.sharedPreferences?.getString(key, null)
+            if (stored.isNullOrEmpty()) {
+                settings.privateToken?.let { token ->
+                    preferenceManager.sharedPreferences?.edit(true) {
+                        putString(key, token)
+                    }
+                }
+            }
+
+            setSummaryProvider {
+                val token = preferenceManager.sharedPreferences?.getString(it.key, null)
+                if (token.isNullOrEmpty()) getString(R.string.not_set) else "••••••••"
+            }
+        }
+
         findPreference<EditTextPreference>("gateway.username")?.setSummaryProvider {
             settings.username ?: getString(R.string.not_set)
         }
