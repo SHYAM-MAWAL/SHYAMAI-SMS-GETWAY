@@ -48,6 +48,15 @@ class GatewayService(
         WebhooksUpdateWorker.start(context)
         SettingsUpdateWorker.start(context)
 
+        // Start SSE immediately if already registered and no FCM token (SSE_ONLY mode)
+        if (settings.registrationInfo != null && settings.fcmToken == null) {
+            try {
+                SSEForegroundService.start(context)
+            } catch (e: Throwable) {
+                // Foreground service cannot be started while app is in background
+            }
+        }
+
         eventsReceiver.start()
     }
 

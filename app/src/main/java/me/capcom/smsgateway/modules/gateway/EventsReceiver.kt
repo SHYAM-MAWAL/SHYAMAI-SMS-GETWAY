@@ -90,7 +90,11 @@ class EventsReceiver : EventsReceiver() {
                     if (!settings.enabled) return@collect
                     if (settings.fcmToken != null) return@collect
 
-                    SSEForegroundService.start(get())
+                    try {
+                        SSEForegroundService.start(get())
+                    } catch (e: Throwable) {
+                        Log.w("EventsReceiver", "Could not start SSEForegroundService: ${e.message}")
+                    }
                 }
             }
         }
