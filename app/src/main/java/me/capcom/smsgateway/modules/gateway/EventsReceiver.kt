@@ -27,10 +27,10 @@ class EventsReceiver : EventsReceiver() {
         coroutineScope {
             launch {
                 Log.d("EventsReceiver", "launched MessageEnqueuedEvent")
-                eventBus.collect<MessageEnqueuedEvent> { event ->
+                eventBus.collect<MessageEnqueuedEvent> block@{ event ->
                     Log.d("EventsReceiver", "Event: $event")
 
-                    if (!settings.enabled) return@collect
+                    if (!settings.enabled) return@block
 
                     PullMessagesWorker.start(get())
                 }
@@ -38,12 +38,12 @@ class EventsReceiver : EventsReceiver() {
             launch {
                 Log.d("EventsReceiver", "launched MessageStateChangedEvent")
                 val allowedSources = setOf(EntitySource.Cloud, EntitySource.Gateway)
-                eventBus.collect<MessageStateChangedEvent> { event ->
+                eventBus.collect<MessageStateChangedEvent> block@{ event ->
                     Log.d("EventsReceiver", "Event: $event")
 
-                    if (!settings.enabled) return@collect
+                    if (!settings.enabled) return@block
 
-                    if (event.source !in allowedSources) return@collect
+                    if (event.source !in allowedSources) return@block
 
                     SendStateWorker.start(get(), event.id)
                 }
@@ -51,10 +51,10 @@ class EventsReceiver : EventsReceiver() {
 
             launch {
                 Log.d("EventsReceiver", "launched PingEvent")
-                eventBus.collect<PingEvent> {
+                eventBus.collect<PingEvent> block@{
                     Log.d("EventsReceiver", "Event: $it")
 
-                    if (!settings.enabled) return@collect
+                    if (!settings.enabled) return@block
 
                     PullMessagesWorker.start(get())
                 }
@@ -62,10 +62,10 @@ class EventsReceiver : EventsReceiver() {
 
             launch {
                 Log.d("EventsReceiver", "launched WebhooksUpdatedEvent")
-                eventBus.collect<WebhooksUpdatedEvent> {
+                eventBus.collect<WebhooksUpdatedEvent> block@{
                     Log.d("EventsReceiver", "Event: $it")
 
-                    if (!settings.enabled) return@collect
+                    if (!settings.enabled) return@block
 
                     WebhooksUpdateWorker.start(get())
                 }
@@ -73,10 +73,10 @@ class EventsReceiver : EventsReceiver() {
 
             launch {
                 Log.d("EventsReceiver", "launched SettingsUpdatedEvent")
-                eventBus.collect<SettingsUpdatedEvent> {
+                eventBus.collect<SettingsUpdatedEvent> block@{
                     Log.d("EventsReceiver", "Event: $it")
 
-                    if (!settings.enabled) return@collect
+                    if (!settings.enabled) return@block
 
                     SettingsUpdateWorker.start(get())
                 }
@@ -84,11 +84,11 @@ class EventsReceiver : EventsReceiver() {
 
             launch {
                 Log.d("EventsReceiver", "launched DeviceRegisteredEvent")
-                eventBus.collect<DeviceRegisteredEvent> {
+                eventBus.collect<DeviceRegisteredEvent> block@{
                     Log.d("EventsReceiver", "Event: $it")
 
-                    if (!settings.enabled) return@collect
-                    if (settings.fcmToken != null) return@collect
+                    if (!settings.enabled) return@block
+                    if (settings.fcmToken != null) return@block
 
                     try {
                         SSEForegroundService.start(get())
