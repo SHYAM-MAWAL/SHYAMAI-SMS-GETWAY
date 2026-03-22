@@ -1,0 +1,108 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Generate Keystore for Release Signing
+        run: |
+          keytool -genkeypair \
+            -alias shyamai \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -keystore app/keystore.jks \
+            -storepass shyamai123 \
+            -keypass shyamai123 \
+            -dname "CN=Shyamai, OU=Dev, O=ShyamAI, L=India, ST=India, C=IN" \
+            -noprompt
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Build Release APK
+        env:
+          SIGNING_STORE_PASSWORD: shyamai123
+          SIGNING_KEY_ALIAS: shyamai
+          SIGNING_KEY_PASSWORD: shyamai123
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Rename APKs
+        run: |
+          mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/SHYAMAI-SMS-Gateway-debug.apk
+          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/SHYAMAI-SMS-Gateway-release.apk
+
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHYAMAI-SMS-Gateway-Debug
+          path: app/build/outputs/apk/debug/SHYAMAI-SMS-Gateway-debug.apk
+          retention-days: 30
+
+      - name: Upload Release APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHYAMAI-SMS-Gateway-Release
+          path: app/build/outputs/apk/release/SHYAMAI-SMS-Gateway-release.apk
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: "SHYAMAI SMS Gateway - Build ${{ github.run_number }}"
+          body: |
+            ## SHYAMAI SMS Gateway APK
+
+            Automated build from commit `${{ github.sha }}`
+
+            ### Download
+            - **Release APK** (recommended) — `SHYAMAI-SMS-Gateway-release.apk`
+            - **Debug APK** — `SHYAMAI-SMS-Gateway-debug.apk`
+
+            ### Install
+            1. Download the APK file below
+            2. Transfer to your Android device
+            3. Enable **Unknown Sources** in Settings → Security
+            4. Tap the APK to install
+          files: |
+            app/build/outputs/apk/debug/SHYAMAI-SMS-Gateway-debug.apk
+            app/build/outputs/apk/release/SHYAMAI-SMS-Gateway-release.apk
+          draft: false
+          prerelease: false
