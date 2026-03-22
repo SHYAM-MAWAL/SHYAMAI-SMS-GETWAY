@@ -43,6 +43,13 @@ class GatewayApi(
             }
         }
         expectSuccess = true
+        engine {
+            config {
+                connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            }
+        }
     }
 
     suspend fun getDevice(token: String?): DeviceGetResponse {
