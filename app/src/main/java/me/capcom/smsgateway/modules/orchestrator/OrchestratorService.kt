@@ -26,31 +26,25 @@ class OrchestratorService(
             return
         }
 
-        logsSvc.start(context)
-        messagesSvc.start(context)
-        webHooksSvc.start(context)
-        gatewaySvc.start(context)
+        try { logsSvc.start(context) } catch (e: Throwable) { }
+        try { messagesSvc.start(context) } catch (e: Throwable) { }
+        try { webHooksSvc.start(context) } catch (e: Throwable) { }
+        try { gatewaySvc.start(context) } catch (e: Throwable) { }
 
         try {
             localServerSvc.start(context)
-            pingSvc.start(context)
-            receiverService.start(context)
         } catch (e: Throwable) {
-            logsSvc.insert(
-                LogEntry.Priority.WARN,
-                MODULE_NAME,
-                "Can't start foreground services while the app is running in the background"
-            )
+            logsSvc.insert(LogEntry.Priority.WARN, MODULE_NAME, "Can't start local server: ${e.message}")
         }
-
+        try {
+            pingSvc.start(context)
+        } catch (e: Throwable) {
+            logsSvc.insert(LogEntry.Priority.WARN, MODULE_NAME, "Can't start ping service: ${e.message}")
+        }
         try {
             receiverService.start(context)
         } catch (e: Throwable) {
-            logsSvc.insert(
-                LogEntry.Priority.WARN,
-                MODULE_NAME,
-                "Can't register receiver"
-            )
+            logsSvc.insert(LogEntry.Priority.WARN, MODULE_NAME, "Can't register receiver: ${e.message}")
         }
     }
 

@@ -377,7 +377,12 @@ class HomeFragment : Fragment() {
     }
 
     private fun start() {
-        orchestratorSvc.start(requireContext(), false)
+        try {
+            orchestratorSvc.start(requireContext(), false)
+        } catch (e: Exception) {
+            Log.e("HomeFragment", "Error starting services", e)
+            Toast.makeText(requireContext(), "Error starting services: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun requestPermissionsAndStart() {
