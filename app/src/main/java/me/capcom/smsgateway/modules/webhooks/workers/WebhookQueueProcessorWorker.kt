@@ -121,7 +121,7 @@ class WebhookQueueProcessorWorker(
             // Get foreground info early to ensure proper service startup
             try {
                 setForeground(getForegroundInfo())
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 logsSvc.insert(
                     priority = LogEntry.Priority.WARN,
                     module = NAME,
