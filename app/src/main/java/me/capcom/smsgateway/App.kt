@@ -50,12 +50,11 @@ class App: Application() {
             )
         }
 
-        Thread.setDefaultUncaughtExceptionHandler(
-            GlobalExceptionHandler(
-                Thread.getDefaultUncaughtExceptionHandler()!!,
-                get()
+        Thread.getDefaultUncaughtExceptionHandler()?.let { defaultHandler ->
+            Thread.setDefaultUncaughtExceptionHandler(
+                GlobalExceptionHandler(defaultHandler, get())
             )
-        )
+        }
 
         instance = this
 

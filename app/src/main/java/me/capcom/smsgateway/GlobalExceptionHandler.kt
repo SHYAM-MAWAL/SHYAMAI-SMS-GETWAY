@@ -26,7 +26,11 @@ class GlobalExceptionHandler(
         } catch (e: Exception) {
             Log.e("GlobalExceptionHandler", "Failed to log uncaught exception", e)
         } finally {
-            defaultHandler.uncaughtException(thread, throwable)
+            try {
+                defaultHandler.uncaughtException(thread, throwable)
+            } catch (e: Exception) {
+                Log.e("GlobalExceptionHandler", "Default handler failed", e)
+            }
         }
     }
 }
