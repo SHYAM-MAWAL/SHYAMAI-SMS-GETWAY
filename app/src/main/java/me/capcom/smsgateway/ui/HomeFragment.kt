@@ -167,59 +167,67 @@ class HomeFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             events.collect<DeviceRegisteredEvent.Success> { event ->
-                binding.textRemoteAddress.text = getString(R.string.address_is, event.server)
+                try {
+                    binding.textRemoteAddress.text = getString(R.string.address_is, event.server)
 
-                binding.textRemoteUsername.movementMethod = LinkMovementMethod.getInstance()
-                binding.textRemotePassword.movementMethod = LinkMovementMethod.getInstance()
+                    binding.textRemoteUsername.movementMethod = LinkMovementMethod.getInstance()
+                    binding.textRemotePassword.movementMethod = LinkMovementMethod.getInstance()
 
-                binding.textRemoteUsername.text = makeCopyableLink(
-                    Html
-                        .fromHtml(
-                            "<a href>${event.login}</a>"
-                        )
-                )
-
-                binding.textRemotePassword.text = when (event.password) {
-                    null -> getString(R.string.n_a)
-                    else -> makeCopyableLink(
+                    binding.textRemoteUsername.text = makeCopyableLink(
                         Html
                             .fromHtml(
-                                "<a href>${event.password}</a>"
+                                "<a href>${event.login}</a>"
                             )
                     )
-                }
 
-                // Set Cloud Server Device ID
-                binding.textRemoteDeviceId.text = gatewaySettings.deviceId?.let {
-                    makeCopyableLink(
-                        Html.fromHtml(
-                            "<a href>$it</a>"
+                    binding.textRemotePassword.text = when (event.password) {
+                        null -> getString(R.string.n_a)
+                        else -> makeCopyableLink(
+                            Html
+                                .fromHtml(
+                                    "<a href>${event.password}</a>"
+                                )
                         )
-                    )
-                } ?: getString(R.string.n_a)
+                    }
+
+                    // Set Cloud Server Device ID
+                    binding.textRemoteDeviceId.text = gatewaySettings.deviceId?.let {
+                        makeCopyableLink(
+                            Html.fromHtml(
+                                "<a href>$it</a>"
+                            )
+                        )
+                    } ?: getString(R.string.n_a)
+                } catch (e: Exception) {
+                    Log.e("HomeFragment", "Error handling DeviceRegisteredEvent.Success", e)
+                }
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
             events.collect<DeviceRegisteredEvent.Failure> { event ->
-                binding.textRemoteAddress.text = getString(R.string.address_is, event.server)
+                try {
+                    binding.textRemoteAddress.text = getString(R.string.address_is, event.server)
 
-                binding.textRemoteUsername.text = getString(R.string.not_registered)
-                binding.textRemotePassword.text = getString(R.string.n_a)
+                    binding.textRemoteUsername.text = getString(R.string.not_registered)
+                    binding.textRemotePassword.text = getString(R.string.n_a)
 
-                // Set Cloud Server Device ID (even for failure cases)
-                binding.textRemoteDeviceId.text = gatewaySettings.deviceId?.let {
-                    makeCopyableLink(
-                        Html.fromHtml(
-                            "<a href>$it</a>"
+                    // Set Cloud Server Device ID (even for failure cases)
+                    binding.textRemoteDeviceId.text = gatewaySettings.deviceId?.let {
+                        makeCopyableLink(
+                            Html.fromHtml(
+                                "<a href>$it</a>"
+                            )
                         )
-                    )
-                } ?: getString(R.string.n_a)
+                    } ?: getString(R.string.n_a)
 
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.failed_to_register_device, event.reason),
-                    Toast.LENGTH_LONG
-                ).show()
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.failed_to_register_device, event.reason),
+                        Toast.LENGTH_LONG
+                    ).show()
+                } catch (e: Exception) {
+                    Log.e("HomeFragment", "Error handling DeviceRegisteredEvent.Failure", e)
+                }
             }
         }
 

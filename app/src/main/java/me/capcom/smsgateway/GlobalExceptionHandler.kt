@@ -16,7 +16,7 @@ class GlobalExceptionHandler(
             logger.insert(
                 LogEntry.Priority.ERROR,
                 "GlobalExceptionHandler",
-                "Unhandled exception in ${thread.name}",
+                "Unhandled exception in ${thread.name}: ${throwable.javaClass.simpleName}: ${throwable.message}",
                 mapOf(
                     "message" to throwable.message,
                     "stackTrace" to throwable.stackTrace.joinToString("\n"),

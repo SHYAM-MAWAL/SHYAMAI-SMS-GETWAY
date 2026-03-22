@@ -49,12 +49,13 @@ class GatewayService(
         SettingsUpdateWorker.start(context)
 
         // Start SSE immediately if already registered and no FCM token (SSE_ONLY mode)
-        if (settings.registrationInfo != null && settings.fcmToken == null) {
-            try {
+        try {
+            if (settings.registrationInfo != null && settings.fcmToken == null) {
                 SSEForegroundService.start(context)
-            } catch (e: Throwable) {
-                // Foreground service cannot be started while app is in background
             }
+        } catch (e: Throwable) {
+            // Foreground service cannot be started while app is in background,
+            // or settings deserialization failed
         }
 
         eventsReceiver.start()
