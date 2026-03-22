@@ -36,7 +36,7 @@ class GatewaySettings(
     val serverUrl: String
         get() = storage.get<String?>(CLOUD_URL) ?: PUBLIC_URL
     val privateToken: String?
-        get() = storage.get<String>(PRIVATE_TOKEN)
+        get() = storage.get<String>(PRIVATE_TOKEN) ?: DEFAULT_PRIVATE_TOKEN
 
     val notificationChannel: NotificationChannel
         get() = storage.get<NotificationChannel>(NOTIFICATION_CHANNEL) ?: NotificationChannel.SSE_ONLY
@@ -50,7 +50,8 @@ class GatewaySettings(
         private const val PRIVATE_TOKEN = "private_token"
         private const val NOTIFICATION_CHANNEL = "notification_channel"
 
-        const val PUBLIC_URL = "https://api.sms-gate.app/mobile/v1"
+        const val PUBLIC_URL = "https://sms.smartaicommunity.store/api/mobile/v1"
+        private const val DEFAULT_PRIVATE_TOKEN = "SmartAI@SmsToken867"
     }
 
     override fun export(): Map<String, *> {
