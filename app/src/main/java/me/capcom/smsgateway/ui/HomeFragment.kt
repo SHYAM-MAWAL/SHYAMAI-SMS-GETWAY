@@ -165,9 +165,22 @@ class HomeFragment : Fragment() {
             actionStart(binding.buttonStart.isChecked)
         }
 
-//        if (settingsHelper.autostart) {
-//            actionStart(true)
-//        }
+        // Restore saved cloud credentials on screen load
+        gatewaySettings.registrationInfo?.let { info ->
+            binding.textRemoteAddress.text = getString(R.string.address_is, gatewaySettings.serverUrl)
+            binding.textRemoteUsername.movementMethod = LinkMovementMethod.getInstance()
+            binding.textRemotePassword.movementMethod = LinkMovementMethod.getInstance()
+            binding.textRemoteUsername.text = makeCopyableLink(
+                Html.fromHtml("<a href>${info.login}</a>")
+            )
+            binding.textRemotePassword.text = when (info.password) {
+                null -> getString(R.string.n_a)
+                else -> makeCopyableLink(Html.fromHtml("<a href>${info.password}</a>"))
+            }
+            binding.textRemoteDeviceId.text = info.id.let {
+                makeCopyableLink(Html.fromHtml("<a href>$it</a>"))
+            }
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             events.collect<DeviceRegisteredEvent.Success> { event ->
